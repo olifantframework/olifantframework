@@ -1,10 +1,6 @@
 <?php
-use Psr\Http\Message\ResponseInterface;
-use Olifant\Http\Client;
-
 Olifant\App::config(function(Olifant\Router $router){
     $router->on('/', function(Olifant\Request $request, Olifant\Response $response){
-
         /*$client = new Client;
         $request = new \Olifant\Http\ClientRequest('http://ibusiness.ru/blog/money/42503');
 
@@ -25,8 +21,10 @@ Olifant\App::config(function(Olifant\Router $router){
 
         $promise->wait();*/
 
+        Olifant\App::ebeleh();
 
         return '123';
-    });
+    }, [
+        'middleware' => ['add:MiddlewareFooBar']
+    ]);
 });
-?>

@@ -5,7 +5,10 @@ abstract class Facade
 {
     protected static $app;
 
-    abstract public static function getKey();
+    public static function getKey()
+    {
+        throw new Exception('Facade::getKey');
+    }
 
     public static function setApp($app)
     {
@@ -17,40 +20,42 @@ abstract class Facade
         return self::$app->make(static::getKey());
     }
 
-    public function constant($name)
+    public static function constant($name)
     {
         $instance = static::getFacadeRoot();
 
         return constant(get_class($instance) . '::' . $name);
     }
 
-    public function __get($key)
+    private static function invoke($method, array $args = [])
     {
         $instance = static::getFacadeRoot();
+        if (method_exists($instance, $method)
+            or method_exists($instance, '__call')) {
+            return call_user_func_array([$instance, $method], $args);
+        } else {
+            $trace = debug_backtrace()[2];
 
-        if (property_exists($instance, $key)) {
-            return $instance->$key;
+            $facadeException = new FacadeException;
+            $facadeException->setMessage(sprintf(
+                'Method %s does not exist in %s',
+                $trace['function'],
+                $trace['class']
+            ));
+            $facadeException->setLine($trace['line']);
+            $facadeException->setFile($trace['file']);
+
+            throw $facadeException;
         }
-
-        if (method_exists($instance, '__get')) {
-            return call_user_func([$instance, '__get'], $key);
-        }
-
-        throw new Exception(':(');
     }
 
     public static function __callStatic($method, $args)
     {
-        $instance = static::getFacadeRoot();
-
-        return call_user_func_array([$instance, $method], $args);
+        return static::invoke($method, $args);
     }
 
     public function __call($method, $args)
     {
-        $instance = static::getFacadeRoot();
-
-        return call_user_func_array([$instance, $method], $args);
+        return static::invoke($method, $args);
     }
 }
-?>

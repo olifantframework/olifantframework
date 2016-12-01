@@ -1,10 +1,10 @@
 <?php
 namespace Olifant;
 
-class Response extends Facade
+class Event extends Facade
 {
     public static function getKey()
     {
-        return 'response';
+        return 'event';
     }
 }

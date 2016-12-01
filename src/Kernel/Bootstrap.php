@@ -3,89 +3,111 @@ namespace Olifant\Kernel;
 
 class Bootstrap
 {
-    private static $app;
-    private static $boot = false;
-    private static $providers = [];
-    private static $configs = [];
+    private $app;
+    private $boot = false;
+    private $providers = [];
+    private $configs = [];
+    private $commands = [];
 
-    public static function setApp($app)
+    public function __construct($app)
     {
-        self::$app = $app;
+        $this->app = $app;
     }
 
-    public static function isBooted()
+    public function isBooted()
     {
-        return self::$boot;
+        return $this->boot;
     }
 
-    public static function apply(array $map)
+    public function apply(array $map)
     {
         if (isset($map['providers'])) {
-            self::addServiceProviders($map['providers']);
+            $this->addServiceProviders($map['providers']);
         }
 
         if (isset($map['configs'])) {
-            self::addConfigs($map['configs']);
+            $this->addConfigs($map['configs']);
+        }
+
+        if (Utils::isCLI() and isset($map['console'])) {
+            $this->addCommands($map['console']);
         }
     }
 
-    public static function addServiceProvider($provider)
+    public function addServiceProvider($provider)
     {
-        self::$providers[] = $provider;
-        if (self::isBooted()) {
-            self::$app->register(new $provider);
+        $this->providers[] = $provider;
+        if ($this->isBooted()) {
+            $this->app->register(new $provider);
         }
     }
 
-    public static function addServiceProviders(array $providers)
+    public function addServiceProviders(array $providers)
     {
         foreach ($providers as $provider) {
-            self::addServiceProvider($provider);
+            $this->addServiceProvider($provider);
         }
     }
 
-    private static function loadServiceProviders()
+    private function loadServiceProviders()
     {
-        foreach (self::$providers as $provider) {
+        foreach ($this->providers as $provider) {
             if ('Olifant\Service\AppServiceProvider' === $provider) {
-                (new $provider)->register(self::$app);
+                (new $provider)->register($this->app);
             } else {
-                self::$app->register(new $provider);
+                $this->app->register(new $provider);
             }
         }
     }
 
-    public static function addConfig($config)
+    public function addConfig($config)
     {
-        self::$configs[] = $config;
-        if (self::isBooted()) {
+        $this->configs[] = $config;
+        if ($this->isBooted()) {
             require($config);
         }
     }
 
-    public static function addConfigs(array $configs)
+    public function addConfigs(array $configs)
     {
         foreach ($configs as $config) {
-            self::addConfig($config);
+            $this->addConfig($config);
         }
     }
 
-    private static function loadConfigs()
+    private function loadConfigs()
     {
-        foreach (self::$configs as $config) {
+        foreach ($this->configs as $config) {
             require($config);
         }
     }
 
-    public static function boot()
+    public function addCommand($command)
     {
-        if (self::isBooted()) {
+        $this->commands[] = $command;
+    }
+
+    public function addCommands(array $commands)
+    {
+        foreach ($commands as $command) {
+            $this->addCommand($command);
+        }
+    }
+
+    public function loadCommands()
+    {
+        return call_user_func_array([$this->app, 'makes'], $this->commands);
+    }
+
+    public function boot()
+    {
+        if ($this->isBooted()) {
             throw new Exception(':(');
         }
 
-        self::loadServiceProviders();
-        self::loadConfigs();
+        $this->loadServiceProviders();
+        $this->loadConfigs();
 
-        self::$boot = true;
+        $this->boot = true;
     }
 }

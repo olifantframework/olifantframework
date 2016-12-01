@@ -2,6 +2,8 @@
 namespace Olifant\Service;
 
 use Olifant\Http\Response;
+use Olifant\Kernel\Utils;
+use Olifant\Kernel\KernelException;
 
 class ResponseServiceProvider extends ServiceProvider
 {
@@ -10,9 +12,14 @@ class ResponseServiceProvider extends ServiceProvider
 
     public function register($app)
     {
-        $response = new Response;
+        if (Utils::isCLI()) {
+            return $app->bind('response', function() {
+                throw new KernelException(
+                    ResponseServiceProvider::class . ' disabled in CLI mode'
+                );
+            });
+        }
 
-        $app->instance('response', $response);
+        $app->instance('response', new Response);
     }
 }
-?>

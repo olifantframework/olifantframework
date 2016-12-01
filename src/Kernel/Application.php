@@ -3,30 +3,25 @@ namespace Olifant\Kernel;
 
 use Closure;
 use Reservoir\Di;
-use Olifant\Router;
-use Olifant\Request;
-use Olifant\Response;
-use Relay\RelayBuilder;
-use Zend\Diactoros\Response\SapiEmitter;
+use Olifant\Event;
 
-class Application
+class Application extends Di
 {
-	protected $di;
-    protected $loaded = false;
-    protected $providers = [];
-    protected $configs = [];
+    const VENDOR = 'Olifant Framework';
+    const VERSION = '0.0.1';
+    private static $instantiated = false;
+    private $isRun = false;
 
     public function __construct()
 	{
-		$this->di = new Di;
-	}
-
-    public function __call($method, array $args)
-    {
-        if (method_exists($this->di, $method)) {
-            return call_user_func_array([$this->di, $method], $args);
+        if (self::$instantiated) {
+            throw new KernelException('App already instantiated');
         }
-    }
+
+        self::$instantiated = true;
+
+		parent::__construct();
+	}
 
 	public function config(Closure $config)
 	{
@@ -37,41 +32,19 @@ class Application
 
 	public function run()
 	{
-        $path = Request::getUri()->getPath();
-        $route = Router::go($path);
+        if ($this->isRun) {
+            throw new KernelException('App already running');
+        }
 
-        $this->instance('route', $route);
+        $this->isRun = true;
 
-        $callback = $route->getCallback();
-
-        $queue = [
-            /*function($req,$res,$next){
-                $res = $res->withHeader('Ebeleh', 'ae');
-
-                return $next($req,$res);
-            },
-            function($req,$res,$next){
-                $res->getBody()->write('foo-');
-
-                return $next($req,$res);
-            },
-            function($req,$res,$next){
-                $res = $next($req,$res);
-                $res->getBody()->write('-bar');
-
-                return $res;
-            },*/
-            new \Olifant\Middleware\Application($callback)
-        ];
-
-        $relayBuilder = new RelayBuilder;
-        $relay = $relayBuilder->newInstance($queue);
-        $response = $relay(
-            $this->make('request'),
-            $this->make('response')
-        );
-
-        (new SapiEmitter)->emit($response);
+        if (Utils::isCLI()) {
+            $console = new ConsoleApplication(self::VENDOR, self::VERSION);
+            $commands = $this->make('bootstrap')->loadCommands();
+            $console->addCommands($commands);
+            $console->run();
+        } else {
+            (new HttpApplication)->run($this);
+        }
 	}
 }
-?>

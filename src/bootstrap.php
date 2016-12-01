@@ -5,12 +5,15 @@ $composer->addPsr4('Olifant\\', __DIR__ . '/Facade');
 Olifant\Service\AutoloadServiceProvider::setLoader($composer);
 
 $app = new Olifant\Kernel\Application;
+$bootstrap = new Olifant\Kernel\Bootstrap($app);
+$app->instance('bootstrap', $bootstrap);
 Olifant\Facade::setApp($app);
-Olifant\Kernel\Bootstrap::setApp($app);
-Olifant\Kernel\Bootstrap::apply([
+
+$bootstrap->apply([
     'providers' => [
         'Olifant\Service\AppServiceProvider',
         'Olifant\Service\AutoloadServiceProvider',
+        'Olifant\Service\EventServiceProvider',
         'Olifant\Service\DebuggerServiceProvider',
         'Olifant\Service\RequestServiceProvider',
         'Olifant\Service\ResponseServiceProvider',
@@ -20,5 +23,8 @@ Olifant\Kernel\Bootstrap::apply([
     'configs' => [
         __DIR__ . '/Config/Debugger.php',
         __DIR__ . '/Config/Router.php'
+    ],
+    'console' => [
+        'Olifant\Console\HelloWorld'
     ]
 ]);

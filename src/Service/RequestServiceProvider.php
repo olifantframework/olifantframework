@@ -1,10 +1,22 @@
 <?php
 namespace Olifant\Service;
 
+use Olifant\Kernel\Utils;
+use Olifant\Http\ServerRequest;
+use Olifant\Kernel\KernelException;
+
 class RequestServiceProvider extends ServiceProvider
 {
     public function register($app)
     {
+        if (Utils::isCLI()) {
+            return $app->bind('request', function() {
+                throw new KernelException(
+                    RequestServiceProvider::class . ' disabled in CLI mode'
+                );
+            });
+        }
+
         $stack = [
             $_SERVER,
             $_GET,
@@ -19,9 +31,11 @@ class RequestServiceProvider extends ServiceProvider
             }
         }
 
-        $request = call_user_func_array(['Olifant\Http\ServerRequest','fromGlobals'], $stack);
+        $request = call_user_func_array(
+            [ServerRequest::class,'fromGlobals'],
+            $stack
+        );
 
         $app->instance('request', $request);
     }
 }
-?>

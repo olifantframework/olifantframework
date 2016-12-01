@@ -1,10 +1,10 @@
 <?php
 namespace Olifant;
 
-class Response extends Facade
+class Bootstrap extends Facade
 {
     public static function getKey()
     {
-        return 'response';
+        return 'bootstrap';
     }
 }
