@@ -5,9 +5,9 @@ $composer->addPsr4('Olifant\\', __DIR__ . '/Facade');
 Olifant\Service\AutoloadServiceProvider::setLoader($composer);
 
 $app = new Olifant\Kernel\Application;
+Olifant\Facade::setApp($app);
 $bootstrap = new Olifant\Kernel\Bootstrap($app);
 $app->instance('bootstrap', $bootstrap);
-Olifant\Facade::setApp($app);
 
 $bootstrap->apply([
     'providers' => [
@@ -15,16 +15,28 @@ $bootstrap->apply([
         'Olifant\Service\AutoloadServiceProvider',
         'Olifant\Service\EventServiceProvider',
         'Olifant\Service\DebuggerServiceProvider',
-        'Olifant\Service\RequestServiceProvider',
-        'Olifant\Service\ResponseServiceProvider',
-        'Olifant\Service\UriServiceProvider',
-        'Olifant\Service\RouterServiceProvider'
+        'Olifant\Service\UriServiceProvider'
     ],
     'configs' => [
-        __DIR__ . '/Config/Debugger.php',
-        __DIR__ . '/Config/Router.php'
-    ],
-    'console' => [
-        'Olifant\Console\HelloWorld'
+        __DIR__ . '/Config/Debugger.php'
     ]
 ]);
+
+if (!Olifant\Kernel\Utils::isCLI()) {
+    $bootstrap->apply([
+        'providers' => [
+            'Olifant\Service\RequestServiceProvider',
+            'Olifant\Service\ResponseServiceProvider',
+            'Olifant\Service\RouterServiceProvider'
+        ],
+        'configs' => [
+            __DIR__ . '/Config/Router.php'
+        ]
+    ]);
+} //else {
+     $bootstrap->apply([
+        'console' => [
+            'Olifant\Console\HelloWorld'
+        ]
+    ]);
+//}

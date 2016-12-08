@@ -21,9 +21,9 @@ Olifant\App::config(function(Olifant\Router $router){
 
         $promise->wait();*/
 
-        Olifant\App::ebeleh();
-
-        return '123';
+        return Olifant\App::console('app:create-users',[
+            'name' => 'sima'
+        ]);
     }, [
         'middleware' => ['add:MiddlewareFooBar']
     ]);

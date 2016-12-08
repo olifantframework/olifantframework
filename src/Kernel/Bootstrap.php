@@ -29,7 +29,7 @@ class Bootstrap
             $this->addConfigs($map['configs']);
         }
 
-        if (Utils::isCLI() and isset($map['console'])) {
+        if (isset($map['console'])) {
             $this->addCommands($map['console']);
         }
     }
@@ -102,7 +102,7 @@ class Bootstrap
     public function boot()
     {
         if ($this->isBooted()) {
-            throw new Exception(':(');
+            throw new KernelException('Already booted');
         }
 
         $this->loadServiceProviders();

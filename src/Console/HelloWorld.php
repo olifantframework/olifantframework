@@ -18,7 +18,9 @@ class HelloWorld extends Command
 
         // the full command description shown when running the command with
         // the "--help" option
-        ->setHelp("This command allows you to create users...");
+        ->setHelp("This command allows you to create users...")
+
+        ->addArgument('name');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -34,7 +36,7 @@ class HelloWorld extends Command
     $output->writeln('Whoa!');
 
     // outputs a message without adding a "\n" at the end of the line
-    $output->write('You are about to ');
+    $output->write('You are about to ' . $input->getArgument('name'));
     $output->write('create a user.');
     }
 }

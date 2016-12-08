@@ -10,4 +10,3 @@ Olifant\App::config(function (Olifant\Debugger $debugger) {
 
 	$debugger->pushHandler($handler);
 });
-?>
