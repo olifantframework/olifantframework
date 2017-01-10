@@ -34,7 +34,12 @@ class Application extends Di
         return $this;
 	}
 
-    public function console($command = '', array $args = [])
+    public function requires($module)
+    {
+        Bootstrap::loadModules((array) $module);
+    }
+
+    public function console($command = null, array $args = [])
     {
         $commands = $this->make('bootstrap')->loadCommands();
 

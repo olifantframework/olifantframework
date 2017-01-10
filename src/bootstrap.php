@@ -13,12 +13,14 @@ $bootstrap->apply([
     'providers' => [
         'Olifant\Service\AppServiceProvider',
         'Olifant\Service\AutoloadServiceProvider',
+        'Olifant\Service\SettingsServiceProvider',
         'Olifant\Service\EventServiceProvider',
         'Olifant\Service\DebuggerServiceProvider',
         'Olifant\Service\UriServiceProvider'
     ],
     'configs' => [
-        __DIR__ . '/Config/Debugger.php'
+        __DIR__ . '/Config/Debugger.php',
+        __DIR__ . '/Config/Settings.php',
     ]
 ]);
 
@@ -33,10 +35,10 @@ if (!Olifant\Kernel\Utils::isCLI()) {
             __DIR__ . '/Config/Router.php'
         ]
     ]);
-} //else {
-     $bootstrap->apply([
+} else {
+    $bootstrap->apply([
         'console' => [
             'Olifant\Console\HelloWorld'
         ]
     ]);
-//}
+}

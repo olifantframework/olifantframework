@@ -5,11 +5,20 @@ class Bootstrap
 {
     private $app;
     private $boot = false;
-    private $providers = [];
-    private $configs = [];
-    private $commands = [];
 
-    public function __construct($app)
+    private $providers = [];
+    private $configs   = [];
+    private $commands  = [];
+    private $events    = [];
+    private $modules   = [];
+
+    private $registeredProviders = [];
+    private $registeredCommands  = [];
+    private $registeredEvents    = [];
+    private $registeredConfigs   = [];
+    private $registeredModules   = [];
+
+    public function __construct(Application $app)
     {
         $this->app = $app;
     }
@@ -21,35 +30,75 @@ class Bootstrap
 
     public function apply(array $map)
     {
-        if (isset($map['providers'])) {
-            $this->addServiceProviders($map['providers']);
-        }
+        foreach ($map as $section => $stack) {
+            switch ($section) {
+                default:
+                    throw new KernelException(
+                        'Cannot apply unknown key: %s',
+                        $section
+                    );
 
-        if (isset($map['configs'])) {
-            $this->addConfigs($map['configs']);
-        }
+                case 'providers':
+                    $this->addService($stack);
+                break;
 
-        if (isset($map['console'])) {
-            $this->addCommands($map['console']);
+                case 'configs':
+                    $this->addConfig($stack);
+                break;
+
+                case 'console':
+                    $this->addCommand($stack);
+                break;
+
+                case 'events':
+                    $this->addEventListener($stack);
+                break;
+
+                case 'modules':
+                    $this->addModule($stack);
+                break;
+            }
         }
     }
 
-    public function addServiceProvider($provider)
+    public function isServiceRegistered($service)
     {
-        $this->providers[] = $provider;
-        if ($this->isBooted()) {
-            $this->app->register(new $provider);
-        }
+        return in_array($service, $this->registeredProviders);
     }
 
-    public function addServiceProviders(array $providers)
+    public function isCommandRegistered($command)
     {
-        foreach ($providers as $provider) {
-            $this->addServiceProvider($provider);
+        return in_array($command, $this->registeredCommands);
+    }
+
+    public function isEventLoaded($event)
+    {
+        return in_array($event, $this->registeredEvents);
+    }
+
+    public function isConfigLoaded($config)
+    {
+        return in_array($config, $this->registeredConfigs);
+    }
+
+    public function isModuleLoaded($module)
+    {
+        return in_array($module, $this->registeredModules);
+    }
+
+    public function addService($providers)
+    {
+        foreach ((array) $providers as $provider) {
+            if (!in_array($provider, $this->providers)) {
+                $this->providers[] = $provider;
+                if ($this->isBooted()) {
+                    $this->app->register(new $provider);
+                }
+            }
         }
     }
 
-    private function loadServiceProviders()
+    private function loadServices()
     {
         foreach ($this->providers as $provider) {
             if ('Olifant\Service\AppServiceProvider' === $provider) {
@@ -57,21 +106,20 @@ class Bootstrap
             } else {
                 $this->app->register(new $provider);
             }
+
+            $this->registeredProviders[] = $provider;
         }
     }
 
-    public function addConfig($config)
+    public function addConfig($configs)
     {
-        $this->configs[] = $config;
-        if ($this->isBooted()) {
-            require($config);
-        }
-    }
-
-    public function addConfigs(array $configs)
-    {
-        foreach ($configs as $config) {
-            $this->addConfig($config);
+        foreach ((array) $configs as $config) {
+            if (!in_array($config, $this->configs)) {
+                $this->configs[] = $config;
+                if ($this->isBooted()) {
+                    require($config);
+                }
+            }
         }
     }
 
@@ -79,24 +127,76 @@ class Bootstrap
     {
         foreach ($this->configs as $config) {
             require($config);
+            $this->registeredConfigs[] = $config;
         }
     }
 
-    public function addCommand($command)
+    public function addCommand($commands)
     {
-        $this->commands[] = $command;
-    }
-
-    public function addCommands(array $commands)
-    {
-        foreach ($commands as $command) {
-            $this->addCommand($command);
+        foreach ((array) $commands as $command) {
+            if (!in_array($command, $this->commands)) {
+                $this->commands[] = $command;
+            }
         }
     }
 
     public function loadCommands()
     {
-        return call_user_func_array([$this->app, 'makes'], $this->commands);
+        $back = [];
+        foreach ($this->commands as $command) {
+            $back[] = $this->app->make($command);
+            $this->registeredCommands[] = $command;
+        }
+
+        return $back;
+    }
+
+    public function addEventListener($events)
+    {
+        foreach ((array) $events as $event) {
+            if (!in_array($event, $this->events)) {
+                $this->events[] = $event;
+                if ($this->isBooted()) {
+                    require($event);
+                }
+            }
+        }
+    }
+
+    private function loadEvents()
+    {
+        foreach ($this->events as $event) {
+            require($event);
+            $this->registeredEvents[] = $event;
+        }
+    }
+
+    public function addModule($modules)
+    {
+        foreach ((array) $modules as $module) {
+            if (!in_array($module, $this->modules)) {
+                $this->modules[] = $module;
+            }
+        }
+    }
+
+    private function loadModules($modules = false)
+    {
+        if (false === $modules) {
+            $modules = $this->modules;
+        }
+
+        foreach ($modules as $module) {
+            $module = $this->app->make($module);
+
+            if ($required = $module->getRequired()) {
+                $this->loadModules((array) $required);
+            }
+
+            call_user_func([$module, 'reqister'], $this->app);
+
+            $this->registeredModules[] = get_class($module);
+        }
     }
 
     public function boot()
@@ -105,8 +205,10 @@ class Bootstrap
             throw new KernelException('Already booted');
         }
 
-        $this->loadServiceProviders();
+        $this->loadServices();
         $this->loadConfigs();
+        $this->loadEvents();
+        $this->loadModules();
 
         $this->boot = true;
     }
