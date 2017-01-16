@@ -14,6 +14,7 @@ $bootstrap->apply([
         'Olifant\Service\AppServiceProvider',
         'Olifant\Service\AutoloadServiceProvider',
         'Olifant\Service\SettingsServiceProvider',
+        'Olifant\Service\EnvServiceProvider',
         'Olifant\Service\EventServiceProvider',
         'Olifant\Service\DebuggerServiceProvider',
         'Olifant\Service\UriServiceProvider'
@@ -29,6 +30,7 @@ if (!Olifant\Kernel\Utils::isCLI()) {
         'providers' => [
             'Olifant\Service\RequestServiceProvider',
             'Olifant\Service\ResponseServiceProvider',
+            'Olifant\Service\HttpClientServiceProvider',
             'Olifant\Service\RouterServiceProvider'
         ],
         'configs' => [

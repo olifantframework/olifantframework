@@ -7,4 +7,16 @@ class Utils
     {
         return 'cli' === php_sapi_name();
     }
+
+    public static function logo()
+    {
+        /**
+        '
+             _  _ \
+              ( \--,/)
+          ,---\ ` '_/
+         /( ___'--/`
+          |_|\ |_|\ olifant';
+        */
+    }
 }

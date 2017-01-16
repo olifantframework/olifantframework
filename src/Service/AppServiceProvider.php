@@ -8,4 +8,3 @@ class AppServiceProvider extends ServiceProvider
         $app->instance('app', $app);
     }
 }
-?>

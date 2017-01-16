@@ -18,11 +18,23 @@ class JsonResponse extends Response
      */
     const DEFAULT_JSON_FLAGS = 79;
 
+    /**
+     * @param integer $status  code
+     * @param array   $headers list
+     */
     public function __construct($status = 200, array $headers= [])
     {
         parent::__construct($status, $headers);
     }
 
+    /**
+     * Set data for encoding
+     *
+     * @param mixed $data    set
+     * @param int   $options flag
+     *
+     * @return self
+     */
     public function withData($data, $options = self::DEFAULT_JSON_FLAGS)
     {
         $json = $this->jsonEncode($data, $options);
@@ -46,8 +58,10 @@ class JsonResponse extends Response
      *
      * @param mixed $data
      * @param int $encodingOptions
-     * @return string
+     *
      * @throws InvalidArgumentException if unable to encode the $data to JSON.
+     *
+     * @return string
      */
     private function jsonEncode($data, $encodingOptions)
     {

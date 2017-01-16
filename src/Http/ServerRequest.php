@@ -4,12 +4,18 @@ namespace Olifant\Http;
 use InvalidArgumentException;
 use UnexpectedValueException;
 use Zend\Diactoros\ServerRequestFactory;
-use Zend\Diactoros\ServerRequest as ZendRequest;
+use Zend\Diactoros\ServerRequest as ZendServerRequest;
 
-class ServerRequest extends ZendRequest
+/**
+ * @method mixed get(string $key) get query param
+ */
+class ServerRequest extends ZendServerRequest
 {
     use CookieRequestTrait;
 
+    /**
+     * @see Zend\Diactoros\ServerRequest
+     */
     public function __construct()
     {
         call_user_func_array(['parent','__construct'], func_get_args());
@@ -80,6 +86,21 @@ class ServerRequest extends ZendRequest
         return $matches['version'];
     }
 
+    public static function build($uri = null)
+    {
+        return new ClientRequest($uri);
+    }
+
+    public function getClientInfo()
+    {
+        return new ClientInfo($this);
+    }
+
+    /**
+     * Detect JSON request
+     *
+     * @return boolean
+     */
     public function isJson()
     {
         $type = $this->getHeaderLine('Content-Type');
@@ -87,6 +108,13 @@ class ServerRequest extends ZendRequest
         return 0 === strpos($type, 'application/json');
     }
 
+    /**
+     * Parse JSON request
+     *
+     * @param boolean $assoc When TRUE, returned objects will be converted into associative arrays
+     *
+     * @return mixed
+     */
     public function getJson($assoc = false)
     {
         // reset error
@@ -106,25 +134,39 @@ class ServerRequest extends ZendRequest
         return $json;
     }
 
+    /**
+     * Detect AJAX request
+     *
+     * @return boolean
+     */
     public function isAjax()
     {
         if (!$this->hasHeader('X-Requested-With')) {
             return false;
         }
 
-        return 'xmlhttprequest' === strtolower($this->getHeaderLine('X-Requested-With'));
+        $requestedWith = $this->getHeaderLine('X-Requested-With');
+
+        return 'xmlhttprequest' === strtolower($requestedWith);
     }
 
+    /**
+     * Detect secure connection
+     *
+     * @return boolean
+     */
     public function isSecure()
     {
-        return $this->getUri()->getScheme() === 'https';
+        return 'https' === $this->getUri()->getScheme();
     }
 
-    public function getClientInfo()
-    {
-        return new ClientInfo($this);
-    }
-
+    /**
+     * Check if file
+     *
+     * @param string $name of
+     *
+     * @return boolean
+     */
     public function hasFile($name)
     {
         $files = $this->getUploadedFiles();
@@ -132,6 +174,11 @@ class ServerRequest extends ZendRequest
         return isset($files[$name]);
     }
 
+    /**
+     * Get query params from different request types
+     *
+     * @return mixed
+     */
     private function getQuerySource()
     {
         $source = [];
@@ -145,6 +192,13 @@ class ServerRequest extends ZendRequest
         return $source;
     }
 
+    /**
+     * Check if request param exists
+     *
+     * @param strinf $key name
+     *
+     * @return boolean
+     */
     public function has($key)
     {
         $source = $this->getQuerySource();
@@ -152,6 +206,11 @@ class ServerRequest extends ZendRequest
         return isset($source[$key]);
     }
 
+    /**
+     * Get request params
+     *
+     * @return mixed
+     */
     public function get()
     {
         $args = func_get_args();

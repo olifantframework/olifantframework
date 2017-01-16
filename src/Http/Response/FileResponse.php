@@ -9,11 +9,22 @@ use Zend\Diactoros\CallbackStream;
 
 class FileResponse extends Response
 {
+    /**
+     * @param integer $status  code
+     * @param array   $headers list
+     */
     public function __construct($status = 200, array $headers = [])
     {
         parent::__construct($status, $headers);
     }
 
+    /**
+     * Set default headers
+     *
+     * @param Psr\Http\Message\ResponseInterface $response instance
+     *
+     * @return Psr\Http\Message\ResponseInterface
+     */
     private function buildHeaders($response)
     {
         $response = $response
@@ -28,6 +39,13 @@ class FileResponse extends Response
         return $response;
     }
 
+    /**
+     * Set content from string
+     *
+     * @param string $contents value
+     *
+     * @return self
+     */
     public function withContents($contents)
     {
         $new = clone $this;
@@ -41,6 +59,13 @@ class FileResponse extends Response
         return $new;
     }
 
+    /**
+     * Set download file path
+     *
+     * @param string $path to file
+     *
+     * @return self
+     */
     public function withFile($path)
     {
         if (!is_readable($path) or !is_file($path)) {
@@ -69,6 +94,13 @@ class FileResponse extends Response
         return $new;
     }
 
+    /**
+     * Set download file name
+     *
+     * @param string $name as download
+     *
+     * @return self
+     */
     public function withName($name)
     {
         $new = clone $this;

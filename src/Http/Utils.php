@@ -5,6 +5,15 @@ use Psr\Http\Message\ResponseInterface;
 
 class Utils
 {
+    /**
+     * Cast instance
+     *   of Psr\Http\Message\ResponseInterface
+     *   to Olifant\Http\Response
+     *
+     * @param  ResponseInterface $response instance
+     *
+     * @return Olifant\Http\Response
+     */
     public static function proxyResponse(ResponseInterface $response)
     {
         if ($response instanceof Olifant\Http\Response) {

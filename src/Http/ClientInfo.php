@@ -1,17 +1,29 @@
 <?php
 namespace Olifant\Http;
 
+use Jenssegers\Agent\Agent;
 use Psr\Http\Message\RequestInterface;
 
 class ClientInfo
 {
+    /**
+     * @var Psr\Http\Message\RequestInterface
+     */
     private $request;
 
+    /**
+     * @param RequestInterface $request [description]
+     */
     public function __construct(RequestInterface $request)
     {
         $this->request = $request;
     }
 
+    /**
+     * Get HTTP referer
+     *
+     * @return false|string
+     */
     public function getHTTPReferer()
     {
         if ($this->request->hasHeader('Referer')) {
@@ -21,6 +33,28 @@ class ClientInfo
         return false;
     }
 
+    /**
+     * Get user device info
+     *
+     * @return Jenssegers\Agent\Agent
+     */
+    public function getDevice()
+    {
+        $ua = $this->getUserAgent();
+        //$headers = $this->request->getAllHeaders();
+
+        $agent = new Agent;
+        $agent->setUserAgent($ua);
+        //$agent->setHttpHeaders($headers);
+
+        return $agent;
+    }
+
+    /**
+     * Get user agent
+     *
+     * @return string
+     */
     public function getUserAgent()
     {
         return $this->request->getHeaderLine('User-Agent');
@@ -60,11 +94,11 @@ class ClientInfo
 
     public function getBestAccept()
     {
-        $accept = $this->getAcceptableContent();
-
-        if (!$accept) return false;
-
-        return reset($accept);
+        return (
+            ($accept = $this->getAcceptableContent())
+            ? reset($accept)
+            : false
+        );
     }
 
     public function getAcceptableEncodings()
@@ -76,6 +110,15 @@ class ClientInfo
         }
 
         return false;
+    }
+
+    public function getBestEncoding()
+    {
+        return (
+            ($encoding = $this->getAcceptableEncodings())
+            ? reset($encoding)
+            : false
+        );
     }
 
     public function getClientCharsets()
@@ -159,7 +202,10 @@ class ClientInfo
         }
 
         if ($auth['type'] == 'Basic') {
-            return $username === $auth['username'] and $password === $auth['password'];
+            return (
+                $username === $auth['username']
+                and $password === $auth['password']
+            );
         }
 
         if ($auth['type'] == 'Digest') {
@@ -174,7 +220,7 @@ class ClientInfo
                 $A2
             ]));
 
-            return ($auth['response'] === $valid);
+            return $auth['response'] === $valid;
         }
 
         return false;

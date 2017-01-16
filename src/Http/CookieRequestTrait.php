@@ -7,11 +7,23 @@ use Dflydev\FigCookies\FigRequestCookies;
 
 trait CookieRequestTrait
 {
+    /**
+     * Get all cookies
+     *
+     * @return Cookie[]
+     */
     public function getAllCookies()
     {
         return Cookies::fromRequest($this)->getAll();
     }
 
+    /**
+     * Get cookie
+     *
+     * @param string $name of cookie
+     *
+     * @return @return Cookie|null
+     */
     public function getCookie($name)
     {
         return Cookies::fromRequest($this)->get($name);
@@ -21,6 +33,7 @@ trait CookieRequestTrait
      * Check cookie exists
      *
      * @param  string  $name of cookie
+     *
      * @return boolean
      */
     public function hasCookie($name)
@@ -28,6 +41,14 @@ trait CookieRequestTrait
         return Cookies::fromRequest($this)->has($name);
     }
 
+    /**
+     * Set cookie
+     *
+     * @param string $name  of cookie
+     * @param mixed $value of cookie
+     *
+     * @return self
+     */
     public function withCookie($name, $value)
     {
         $cookie = Cookie::create($name)->withValue($value);
@@ -35,6 +56,14 @@ trait CookieRequestTrait
         return FigRequestCookies::set($this, $cookie);
     }
 
+    /**
+     * Modify cookie value
+     *
+     * @param string   $name of cookie
+     * @param callable $call resolver
+     *
+     * @return self
+     */
     public function withModifiedCookie($name, callable $call)
     {
         return FigRequestCookies::modify($this, $name, $call);
@@ -43,8 +72,9 @@ trait CookieRequestTrait
     /**
      * Remove cookie with specified name
      *
-     * @param  string $name [description]
-     * @return Olifant\Http\Request
+     * @param string $name of cookie
+     *
+     * @return self
      */
     public function withoutCookie($name)
     {

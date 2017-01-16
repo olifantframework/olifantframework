@@ -15,4 +15,3 @@ class AutoloadServiceProvider extends ServiceProvider
 		$app->instance('autoload', self::$loader);
 	}
 }
-?>

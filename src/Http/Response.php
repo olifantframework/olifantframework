@@ -14,18 +14,40 @@ class Response extends ZendResponse
 {
     use CookieResponseTrait;
 
+    /**
+     * @param integer $status  code
+     * @param array   $headers list
+     */
     public function __construct($status = 200, array $headers = [])
     {
         parent::__construct('php://memory', $status, $headers);
     }
 
-    public function toTextResponse()
+    public function getAllHeaders()
     {
-        return (new TextResponse)
-            ->withStatus($this->getStatusCode())
-            ->withHeaders($this->getAllHeaders());
+        $headers = [];
+        foreach ($this->getHeaders() as $key => $head) {
+            $headers[$key] = $response->getHeaderLine($key);
+        }
+
+        return $headers;
     }
 
+    public function withHeaders(array $headers)
+    {
+        $new = clone $this;
+        foreach ($headers as $key => $head) {
+            $new = $new->withHeader($key, $head);
+        }
+
+        return $new;
+    }
+
+    /**
+     * Cast to JsonResponse
+     *
+     * @return JsonResponse
+     */
     public function toJsonResponse()
     {
         return (new JsonResponse)
@@ -33,6 +55,11 @@ class Response extends ZendResponse
             ->withHeaders($this->getAllHeaders());
     }
 
+    /**
+     * Cast to RedirectResponse
+     *
+     * @return RedirectResponse
+     */
     public function toRedirectResponse()
     {
         return (new RedirectResponse)
@@ -41,6 +68,11 @@ class Response extends ZendResponse
             );
     }
 
+    /**
+     * Cast to FileResponse
+     *
+     * @return FileResponse
+     */
     public function toFileResponse()
     {
         return (new FileResponse)
@@ -48,6 +80,11 @@ class Response extends ZendResponse
             ->withHeaders($this->getAllHeaders());
     }
 
+    /**
+     * Cast to StreamedResponse
+     *
+     * @return StreamedResponse
+     */
     public function toStreamedResponse()
     {
         return (new StreamedResponse)
@@ -55,13 +92,23 @@ class Response extends ZendResponse
             ->withHeaders($this->getAllHeaders());
     }
 
+    /**
+     * Cast to AuthAskResponse
+     *
+     * @return AuthAskResponse
+     */
     public function toAuthAskResponse()
     {
-        return (new AuthAskResponse())->withHeaders(
+        return (new AuthAskResponse)->withHeaders(
             $this->getAllHeaders()
         );
     }
 
+    /**
+     * Cast to ClientErrorResponse
+     *
+     * @return ClientErrorResponse
+     */
     public function toClientErrorResponse()
     {
         return (new ClientErrorResponse)->withHeaders(
@@ -69,6 +116,11 @@ class Response extends ZendResponse
         );
     }
 
+    /**
+     * Cast to ServerErrorResponse
+     *
+     * @return ServerErrorResponse
+     */
     public function toServerErrorResponse()
     {
         return (new ServerErrorResponse)->withHeaders(

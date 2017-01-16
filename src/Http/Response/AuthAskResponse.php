@@ -7,14 +7,32 @@ use InvalidArgumentException;
 
 class AuthAskResponse extends Response
 {
+    /**
+     * @var string
+     */
     private $realm;
+
+    /**
+     * @var array
+     */
     private static $availTypes = ['Basic', 'Digest'];
 
+    /**
+     * @param integer $status  code
+     * @param array   $headers list
+     */
     public function __construct($status = 401, array $headers = [])
     {
         parent::__construct('php://memory', $status, $headers);
     }
 
+    /**
+     * Set realm value
+     *
+     * @param string $realm value
+     *
+     * @return self
+     */
     public function setRealm($realm)
     {
         $this->realm = $realm;
@@ -22,11 +40,23 @@ class AuthAskResponse extends Response
         return $this;
     }
 
+    /**
+     * Get realm value
+     *
+     * @return string
+     */
     public function getRealm()
     {
         return $this->realm;
     }
 
+    /**
+     * Set realm value
+     *
+     * @param string $realm value
+     *
+     * @return self
+     */
     public function withRealm($realm)
     {
         $new = clone $this;
@@ -35,6 +65,13 @@ class AuthAskResponse extends Response
         return $new;
     }
 
+    /**
+     * Set auth type
+     *
+     * @param string $type of auth
+     *
+     * @return self
+     */
     public function withType($type)
     {
         $type = ucfirst(strtolower($type));
@@ -64,6 +101,13 @@ class AuthAskResponse extends Response
         return $new->withHeader('WWW-Authenticate', $auth);
     }
 
+    /**
+     * Set fallback text value
+     *
+     * @param string $text value
+     *
+     * @return self
+     */
     public function withFallback($text)
     {
         $new = clone $this;

@@ -1,6 +1,7 @@
 <?php
 namespace Olifant\Service;
 
+use Olifant\Env;
 use Olifant\Kernel\Utils;
 use Olifant\Http\ServerRequest;
 use Olifant\Kernel\KernelException;
@@ -9,7 +10,7 @@ class RequestServiceProvider extends ServiceProvider
 {
     public function register($app)
     {
-        if (Utils::isCLI()) {
+        if (Env::system()->isCLI()) {
             return $app->bind('request', function() {
                 throw new KernelException(
                     RequestServiceProvider::class . ' disabled in CLI mode'

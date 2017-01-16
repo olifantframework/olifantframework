@@ -7,8 +7,6 @@ class EventServiceProvider extends ServiceProvider
 {
     public function register($app)
     {
-        $event = new EventEmitter;
-
-        $app->instance('event', $event);
+        $app->instance('event', new EventEmitter);
     }
 }
