@@ -1,8 +1,12 @@
 <?php
 namespace Olifant\Console;
 
+use Olifant\Job;
+use Olifant\Process;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class HelloWorld extends Command
@@ -10,33 +14,29 @@ class HelloWorld extends Command
     protected function configure()
     {
        $this
-        // the name of the command (the part after "bin/console")
-        ->setName('app:create-users')
-
-        // the short description shown while running "php bin/console list"
-        ->setDescription('Creates new users.')
-
-        // the full command description shown when running the command with
-        // the "--help" option
-        ->setHelp("This command allows you to create users...")
-
-        ->addArgument('name');
+            ->setName('job')
+            ->setDescription('Run job queue')
+            ->setHelp("This command allows you to create users...")
+            ->setDefinition(
+                new InputDefinition([
+                    new InputOption('index','i',InputOption::VALUE_OPTIONAL)
+                ])
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-       // outputs multiple lines to the console (adding "\n" at the end of each line)
-    $output->writeln([
-        'User Creator',
-        '============',
-        '',
-    ]);
+        $index = $input->getOption('index');
+        if ($index) {
+            Job::exec($index);
+        } else {
+            $expired = Job::getExpired();
 
-    // outputs a message followed by a "\n"
-    $output->writeln('Whoa!');
-
-    // outputs a message without adding a "\n" at the end of the line
-    $output->write('You are about to ' . $input->getArgument('name'));
-    $output->write('create a user.');
+            foreach ($expired as $e) {
+                $sh = __DIR__ . '/../../../../../bin/console job -i ' . $e;
+                $sh .= '> /dev/null 2>/dev/null &';
+                Process::set($sh)->run();
+            }
+        }
     }
 }

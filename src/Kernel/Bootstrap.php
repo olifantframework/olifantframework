@@ -11,12 +11,14 @@ class Bootstrap
     private $commands  = [];
     private $events    = [];
     private $modules   = [];
+    private $jobs      = [];
 
     private $registeredProviders = [];
     private $registeredCommands  = [];
     private $registeredEvents    = [];
     private $registeredConfigs   = [];
     private $registeredModules   = [];
+    private $registeredJobs      = [];
 
     public function __construct(Application $app)
     {
@@ -56,6 +58,10 @@ class Bootstrap
 
                 case 'modules':
                     $this->addModule($stack);
+                break;
+
+                case 'jobs':
+                    $this->addJob($stack);
                 break;
             }
         }
@@ -199,6 +205,26 @@ class Bootstrap
         }
     }
 
+    public function addJob($jobs)
+    {
+        foreach ((array) $jobs as $job) {
+            if (!in_array($job, $this->jobs)) {
+                $this->jobs[] = $job;
+                if ($this->isBooted()) {
+                    require($job);
+                }
+            }
+        }
+    }
+
+    public function loadJobs()
+    {
+        foreach ($this->jobs as $job) {
+            require($job);
+            $this->registeredJobs[] = $job;
+        }
+    }
+
     public function boot()
     {
         if ($this->isBooted()) {
@@ -210,6 +236,15 @@ class Bootstrap
         $this->loadEvents();
         $this->loadModules();
 
+        //if (Olifant\Kernel\Utils::isCLI()) {
+            $this->loadJobs();
+        //}
+
         $this->boot = true;
+
+        \Olifant\App::job('test','* * * * *', function(){
+            echo 1;
+            sleep(10);
+        });
     }
 }

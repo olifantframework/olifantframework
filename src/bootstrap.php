@@ -9,38 +9,51 @@ Olifant\Facade::setApp($app);
 $bootstrap = new Olifant\Kernel\Bootstrap($app);
 $app->instance('bootstrap', $bootstrap);
 
-$bootstrap->apply([
-    'providers' => [
-        'Olifant\Service\AppServiceProvider',
-        'Olifant\Service\AutoloadServiceProvider',
-        'Olifant\Service\SettingsServiceProvider',
-        'Olifant\Service\EnvServiceProvider',
-        'Olifant\Service\EventServiceProvider',
-        'Olifant\Service\DebuggerServiceProvider',
-        'Olifant\Service\UriServiceProvider'
-    ],
-    'configs' => [
-        __DIR__ . '/Config/Debugger.php',
-        __DIR__ . '/Config/Settings.php',
-    ]
-]);
+//$isJob = Olifant\Kernel\Utils::isCLI() and $argv[1] === 'job';
 
-if (!Olifant\Kernel\Utils::isCLI()) {
+/*if ($isJob) {
+     $bootstrap->apply([
+        'providers' => [
+            'Olifant\Service\AppServiceProvider'
+        ]
+    ]);
+} else {*/
     $bootstrap->apply([
         'providers' => [
-            'Olifant\Service\RequestServiceProvider',
-            'Olifant\Service\ResponseServiceProvider',
-            'Olifant\Service\HttpClientServiceProvider',
-            'Olifant\Service\RouterServiceProvider'
+            'Olifant\Service\AppServiceProvider',
+            'Olifant\Service\AutoloadServiceProvider',
+            'Olifant\Service\JobServiceProvider',
+            'Olifant\Service\ProcessServiceProvider',
+            'Olifant\Service\SettingsServiceProvider',
+            'Olifant\Service\EnvServiceProvider',
+            'Olifant\Service\EventServiceProvider',
+            'Olifant\Service\DebuggerServiceProvider',
+            'Olifant\Service\UriServiceProvider'
         ],
         'configs' => [
-            __DIR__ . '/Config/Router.php'
+            __DIR__ . '/Config/Debugger.php',
+            __DIR__ . '/Config/Settings.php',
         ]
     ]);
-} else {
-    $bootstrap->apply([
-        'console' => [
-            'Olifant\Console\HelloWorld'
-        ]
-    ]);
-}
+
+    if (!Olifant\Kernel\Utils::isCLI()) {
+        $bootstrap->apply([
+            'providers' => [
+                'Olifant\Service\RequestServiceProvider',
+                'Olifant\Service\ResponseServiceProvider',
+                'Olifant\Service\HttpClientServiceProvider',
+                'Olifant\Service\RouterServiceProvider'
+            ],
+            'configs' => [
+                __DIR__ . '/Config/Router.php'
+            ]
+        ]);
+    } else {
+        $bootstrap->apply([
+            'console' => [
+                'Olifant\Console\HelloWorld'
+            ]
+        ]);
+    }
+//}
+//

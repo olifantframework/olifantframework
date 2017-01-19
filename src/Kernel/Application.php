@@ -37,6 +37,15 @@ class Application extends Di
     public function requires($module)
     {
         Bootstrap::loadModules((array) $module);
+
+        return $this;
+    }
+
+    public function job($name, $period, Closure $call)
+    {
+        $this->make('job')->add($name, $period, $call);
+
+        return $this;
     }
 
     public function console($command = null, array $args = [])
