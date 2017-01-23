@@ -41,11 +41,9 @@ class ClientInfo
     public function getDevice()
     {
         $ua = $this->getUserAgent();
-        //$headers = $this->request->getAllHeaders();
 
         $agent = new Agent;
         $agent->setUserAgent($ua);
-        //$agent->setHttpHeaders($headers);
 
         return $agent;
     }

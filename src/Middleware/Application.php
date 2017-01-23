@@ -39,7 +39,7 @@ class Application
                     ->toJsonResponse()
                     ->withData($response);
             } else {
-                $echo = (string)$response;
+                $echo = (string) $response;
                 $response = $app->make('response');
                 $response->getBody()->write($echo);
             }

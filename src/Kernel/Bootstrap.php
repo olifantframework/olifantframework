@@ -99,6 +99,7 @@ class Bootstrap
                 $this->providers[] = $provider;
                 if ($this->isBooted()) {
                     $this->app->register(new $provider);
+                    $this->registeredProviders[] = $provider;
                 }
             }
         }
@@ -124,6 +125,7 @@ class Bootstrap
                 $this->configs[] = $config;
                 if ($this->isBooted()) {
                     require($config);
+                    $this->registeredConfigs[] = $config;
                 }
             }
         }

@@ -4,8 +4,6 @@ namespace Olifant\Kernel;
 use Closure;
 use Reservoir\Di;
 use Olifant\Event;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
 
 class Application extends Di
 {
@@ -48,30 +46,9 @@ class Application extends Di
         return $this;
     }
 
-    public function console($command = null, array $args = [])
+    public function console($command, array $args = [])
     {
-        $commands = $this->make('bootstrap')->loadCommands();
-
-        $console = new ConsoleApplication(
-            self::VENDOR,
-            self::VERSION
-        );
-
-        $console->addCommands($commands);
-
-        if ($command) {
-            $args = ['command' => $command] + $args ?: [];
-
-            $input = new ArrayInput($args);
-            $output = new BufferedOutput();
-
-            $console->setAutoExit(false);
-            $console->run($input, $output);
-
-            return $output->fetch();
-        } else {
-            return $console->run();
-        }
+        return ConsoleApplication::getInstance($this)->exec($command, $args);
     }
 
 	public function run()
@@ -83,7 +60,7 @@ class Application extends Di
         $this->isRun = true;
 
         if (Utils::isCLI()) {
-            $this->console();
+            ConsoleApplication::getInstance($this)->run();
         } else {
             (new HttpApplication)->run($this);
         }
